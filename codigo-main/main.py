@@ -244,13 +244,6 @@ sucursal_con_mayor_facturacion = df.groupby("Sucursal")["Importe_Final"].sum().i
 print(f"La sucursal con mayor facturación es: {sucursal_con_mayor_facturacion}")
 
 #¿Qué categorías se venden más en cada sucursal? 
-# categorias_por_sucursal = df.groupby("Sucursal")["Categoria"].value_counts().groupby(level=0).idxmax()
-# print("\nCategorías más vendidas por sucursal:")
-
-# for sucursal, categoria in categorias_por_sucursal.items():
-#     print(f"{sucursal}: {categoria[1]}")
-
-
 conteo_categorias = df.groupby("Sucursal")["Categoria"].value_counts()
 
 maximos = conteo_categorias.groupby(level=0).transform("max")
@@ -288,27 +281,210 @@ Analizar al menos dos aspectos.
 • categorías más vendidas 
 Escribir una breve interpretación de las diferencias observadas. 
 """
-#cantidad de ventas 
-cantidad_ventas_por_canal = df.groupby("Canal")["ID_Venta"].count()
-print(f"\nCantidad de ventas por canal: {cantidad_ventas_por_canal}")
+
+# Ventas presencial
+cantidad_ventas_por_canal = df.groupby("Canal")["ID_Venta"].count().get("Presencial", 0)
+print(f"\nCantidad de ventas presencial: {cantidad_ventas_por_canal}")
+
+# Ventas online
 cantidad_ventas_online = df.groupby("Canal")["ID_Venta"].count().get("Online", 0)
 print(f"\nCantidad de ventas online: {cantidad_ventas_online}")
 
-#importe promedio 
-importe_promedio_por_canal = df.groupby("Canal")["Importe_Final"].mean()
-print(f"\nImporte promedio por canal: {importe_promedio_por_canal}")
+#Total cantidad de ventas
+total_cantidad_ventas = cantidad_ventas_por_canal + cantidad_ventas_online
+print(f"\nTotal cantidad de ventas: {total_cantidad_ventas}")
 
+#RTA
+# Se observa que la cantidad de ventas presencial es mayor que la cantidad de ventas online, 
+# lo que puede deberse a factores como la preferencia de los clientes por comprar en tiendas físicas,
+# la disponibilidad de productos en línea y la confianza en el proceso de compra en línea.
+
+#Importe promedio
+importe_promedio_por_canal = df.groupby("Canal")["Importe_Final"].mean()
+print("\nImporte promedio por canal:")
 for canal, promedio in importe_promedio_por_canal.items():
-    print(f"{canal}: ${promedio:.2f}")
+    print(f"- {canal}: ${promedio:,.2f}")
+
+#RTA
+# Se observa que el importe promedio de las ventas online es mayor que el importe promedio de las ventas presencial.
 
 #facturación total 
+facturacion_total = df.groupby("Canal")["Importe_Final"].sum()
+
+print("\nFacturación total por canal:")
+for canal, total in facturacion_total.items():
+    print(f"- {canal}: ${total:,.2f}")
+
+print(f"Total facturación: ${facturacion_total.sum():,.2f}")
+
+#RTA
+# Se observa que la facturación total de las ventas online es mayor que la facturación total de las ventas presencial,
+# lo que puede deberse a factores como la mayor cantidad de ventas online, la disponibilidad de productos exclusivos en línea
+# y la comodidad de comprar desde casa.
 
 #descuentos aplicados 
+descuentos_aplicados = df.groupby("Canal")["Descuento_Porc"].mean()
+print("\nDescuentos aplicados por canal:")
+for canal, descuento in descuentos_aplicados.items():
+    print(f"- {canal}: {descuento:.2%}")
+
+print(f"Descuento promedio total: {descuentos_aplicados.mean():.2%}")
+print(f"Total de descuentos aplicados: {descuentos_aplicados.sum():.2%}")
+cantidad_descuentos_aplicados = df[df["Descuento_Porc"] > 0].shape[0]
+print(f"Cantidad de descuentos aplicados: {cantidad_descuentos_aplicados}")
+
+#RTA
+# Se observa que el descuento promedio aplicado en las ventas online es mayor que el descuento promedio aplicado en las ventas presencial,
+# lo que puede deberse a factores como la competencia en línea, la disponibilidad de cupones y promociones exclusivas para compras en línea, 
+# y la estrategia de marketing de la empresa para incentivar las ventas online.
 
 #costo de envío 
+costo_envio_total = df.groupby("Canal")["Costo_Envio"].sum()
+print("\nCosto de envío total por canal:")
+for canal, costo in costo_envio_total.items():
+    print(f"- {canal}: ${costo:,.2f}")
+
+costo_envio_promedio = df.groupby("Canal")["Costo_Envio"].mean()
+print("\nCosto de envío promedio por canal:")
+for canal, costo in costo_envio_promedio.items():
+    print(f"- {canal}: ${costo:,.2f}")
+
+print(f"Total costo de envío: ${costo_envio_total.sum():,.2f}")
+print(f"Promedio costo de envío: ${costo_envio_promedio.mean():,.2f}")
+
+#RTA
+# Se observa que el costo de envío promedio de las ventas online es mayor que el costo de envío promedio de las ventas presencial.
+# Se puede deber a que las ventas online requieren envíos a domicilio, mientras que las ventas presencial no tienen este costo adicional o tal vez si dependiendo el producto.
 
 #tipo de cliente 
+tipo_cliente = df.groupby(["Canal", "Tipo_Cliente"]).size()
+print("\nTipo de cliente por canal:")
+for (canal, tipo), cantidad in tipo_cliente.items():
+    print(f"{canal}, {tipo}: {cantidad}")
+
+#RTA
+# Se observa que el tipo de cliente más frecuente en las ventas en general es el cliente particular, en las ventas online
+# hay una cierta cantidad de clientes de tipo Empresa pero aun asi no llega a superar al cliente particular.
 
 #categorías más vendidas 
 
+categorias_mas_vendidas = df.groupby("Canal")["Categoria"].value_counts()
+print("\nCategorías más vendidas por canal:")
+for (canal, categoria), cantidad in categorias_mas_vendidas.items():    
+    print(f"{canal}, {categoria}: {cantidad}")
 
+categoria_mas_venvida_por_canal = categorias_mas_vendidas.groupby(level=0).idxmax()
+print("\nCategoría más vendida por canal:")
+for canal, categoria in categoria_mas_venvida_por_canal.items():
+    print(f"{canal}: {categoria[1]}")
+
+#RTA
+# Se observa que la categoría más vendida en las ventas presencial es la misma que en las ventas online.
+
+"""
+7. Análisis por vendedor
+Analizar el desempeño de los distintos vendedores.
+Pueden considerar:
+•	cantidad de ventas
+•	unidades vendidas
+•	facturación
+•	importe promedio por operación
+•	calificación promedio de los clientes
+No se busca solamente determinar quién posee el valor más alto, sino comparar los distintos comportamientos observados.
+"""
+
+# cantidad de ventas
+cantidad_ventas = df.groupby("Vendedor")["Cantidad"].sum()
+print("\nCantidad de ventas por vendedor:")
+for vendedor, cantidad in cantidad_ventas.items():
+    print(f"- {vendedor}: {cantidad}")
+
+categoria_mas_vendida_por_vendedor = df.groupby("Vendedor")["Categoria"].value_counts().groupby(level=0).idxmax()
+print("\nCategoría más vendida por vendedor:")
+for vendedor, categoria in categoria_mas_vendida_por_vendedor.items():
+    print(f"- {vendedor}: {categoria[1]}")
+
+# unidades vendidas
+productos_vendidos_por_vendedor = df.groupby(["Vendedor", "Producto"])["Cantidad"].sum()
+print("\nUnidades vendidas por vendedor:")
+for vendedor, productos in productos_vendidos_por_vendedor.groupby(level=0):
+    print(f"{vendedor}:")
+    for producto, unidades in productos.items():
+        print(f"  - {producto[1]}: {unidades}")
+
+vendedor_con_mas_unidades_vendidas = productos_vendidos_por_vendedor.groupby(level=0).sum().idxmax()
+print(f"\nVendedor con más unidades vendidas:\n{vendedor_con_mas_unidades_vendidas} con {productos_vendidos_por_vendedor.groupby(level=0).sum().max()} unidades vendidas.")
+
+# facturación
+facturacion_por_vendedor = df.groupby("Vendedor")["Importe_Final"].sum()
+print("\nFacturación por vendedor:")
+for vendedor, facturacion in facturacion_por_vendedor.items():
+    print(f"- {vendedor}: ${facturacion:,.2f}")
+
+vendedor_con_facturacion_maxima = facturacion_por_vendedor.max()
+print(f"\nVendedor con facturación máxima:\n{facturacion_por_vendedor.idxmax()} con facturación de ${vendedor_con_facturacion_maxima:,.2f}")
+
+# importe promedio por operación
+importe_promedio_por_vendedor = df.groupby("Vendedor")["Importe_Final"].mean()
+print("\nImporte promedio por operación por vendedor:")
+for vendedor, promedio in importe_promedio_por_vendedor.items():
+    print(f"- {vendedor}: ${promedio:,.2f}")
+
+mayor_importe_promedio = importe_promedio_por_vendedor.max()
+print(f"\nVendedor con mayor importe promedio por operación:\n{importe_promedio_por_vendedor.idxmax()} con importe promedio de ${mayor_importe_promedio:,.2f}")
+
+# calificación promedio de los clientes
+calificacion_promedio_por_vendedor = df.groupby("Vendedor")["Calificacion"].mean()
+print("\nCalificación promedio de los clientes por vendedor:")
+for vendedor, calificacion in calificacion_promedio_por_vendedor.items():
+    print(f"- {vendedor}: {calificacion:.0f}")
+
+mayor_calificacion = calificacion_promedio_por_vendedor.max()
+print(f"\nVendedor con mayor calificación promedio de los clientes:\n{calificacion_promedio_por_vendedor.idxmax()} con calificación promedio de {mayor_calificacion:.0f}")
+
+
+"""
+8. Productos y categorías
+Realizar un análisis de las categorías y productos comercializados.
+Pueden investigar:
+•	categorías con mayor cantidad de unidades vendidas
+•	categorías con mayor facturación
+•	productos más frecuentes
+•	marcas con mayor presencia
+•	diferencias de precio entre categorías
+"""
+
+# categorías con mayor cantidad de unidades vendidas
+categorias_vendidas = df.groupby("Categoria")["Cantidad"].sum()
+categoria_maxima = categorias_vendidas.idxmax()
+cantidad_categoria_maxima = categorias_vendidas.max()
+print(f"\nCategoría con mayor cantidad de unidades vendidas:\n{categoria_maxima} con {cantidad_categoria_maxima} unidades vendidas.")
+
+# categorías con mayor facturación
+categorias_con_mayor_facturacion = df.groupby("Categoria")["Importe_Final"].sum().idxmax()
+print(f"\nCategoría con mayor facturación:\n{categorias_con_mayor_facturacion} con ${df.groupby('Categoria')['Importe_Final'].sum().max():,.2f} en facturación.")
+
+# productos más frecuentes
+productos_mas_frecuentes = df.groupby("Producto")["Cantidad"].sum().idxmax()    
+print(f"\nProducto más frecuente:\n{productos_mas_frecuentes} con {df.groupby('Producto')['Cantidad'].sum().max()} unidades vendidas.")
+
+# marcas con mayor presencia
+marcas_con_mayor_presencia = df.groupby("Marca")["Cantidad"].sum().idxmax()
+print(f"\nMarca con mayor presencia:\n{marcas_con_mayor_presencia} con {df.groupby('Marca')['Cantidad'].sum().max()} unidades vendidas.")
+
+# diferencias de precio entre categorías
+diferencias_precio_entre_categorias = df.groupby("Categoria")["Precio_Unitario"].agg(["min", "max", "mean"])
+print("\nDiferencias de precio entre categorías:")
+for categoria, precios in diferencias_precio_entre_categorias.iterrows():
+    print(f"- {categoria}: Mínimo: ${precios['min']:.2f}, Máximo: ${precios['max']:.2f}, Promedio: ${precios['mean']:.2f}")
+
+"""
+9. Visualización de datos
+Construir al menos cuatro visualizaciones utilizando Matplotlib y/o Seaborn. Cada gráfico deberá responder a una pregunta concreta. 
+Al menos una visualización deberá comparar grupos o categorías.
+Cada gráfico deberá incluir: título, etiquetas en los ejes, leyenda cuando resulte necesaria,  escala adecuada.
+
+Para cada visualización escribir brevemente:
+•	¿Qué pregunta intenta responder?
+•	¿Qué información permite observar?
+"""
