@@ -1,5 +1,5 @@
 """"
-1. Importación y reconocimiento del archivoImportar la hoja Ventas utilizando Pandas.Realizar una primera 
+1. Importación y reconocimiento del archivo Importar la hoja Ventas utilizando Pandas.Realizar una primera 
 exploración utilizando algunas de las herramientas trabajadas:
 
 df.head()
@@ -15,7 +15,7 @@ A partir de esta exploración, responder:
 •¿Qué variables son numéricas?
 •¿Qué variables son categóricas?
 •¿Qué información representa cada fila?
-Pueden consultartambién la hoja Diccionariopara conocer el significado de las variables.
+Pueden consultartambién la hoja Diccionario para conocer el significado de las variables.
 """
 import pandas as pd
 
